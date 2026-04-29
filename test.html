@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ReplyKit — Test Harness</title>
+    <link rel="stylesheet" href="content.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+            padding: 48px;
+            background: linear-gradient(135deg, #f6f5fb 0%, #ece9ff 100%);
+            margin: 0;
+            min-height: 100vh;
+            color: #1a1730;
+        }
+        h1 {
+            font-size: 28px;
+            margin: 0 0 4px;
+            background: linear-gradient(135deg, #7C5CFF 0%, #3D2EE6 100%);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        p.lede { color: #5b5878; margin: 0 0 32px; }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 600px;
+            box-shadow: 0 8px 32px -8px rgba(60,45,160,.18);
+            border: 1px solid #e7e3f4;
+            margin-bottom: 16px;
+        }
+        .card h3 { margin: 0 0 12px; font-size: 14px; color: #5b5878; text-transform: uppercase; letter-spacing: .04em; }
+        .comment-box {
+            min-height: 80px;
+            background: #fafafd;
+            border-radius: 10px;
+            padding: 12px 14px;
+            border: 1px solid #e7e3f4;
+            outline: none;
+            font-size: 14px;
+            color: #1a1730;
+        }
+        .comment-box:focus { border-color: #5c3dff; box-shadow: 0 0 0 3px rgba(92,61,255,.15); }
+        .comment-box[contenteditable="true"]:empty:before {
+            content: attr(data-placeholder);
+            color: #8b87a8;
+        }
+        .actions { margin-top: 12px; display: flex; gap: 8px; }
+        .actions button {
+            background: white; border: 1px solid #e7e3f4; padding: 6px 12px;
+            border-radius: 8px; font-size: 12px; cursor: pointer; color: #5b5878;
+        }
+        .actions button:hover { border-color: #5c3dff; color: #5c3dff; }
+    </style>
+</head>
+<body>
+    <h1>ReplyKit Test Harness</h1>
+    <p class="lede">Open the floating panel in the bottom-right and click any reply to insert it into a focused box below.</p>
+
+    <div class="card">
+        <h3>Contenteditable (like Facebook comments)</h3>
+        <div class="comment-box" contenteditable="true" data-placeholder="Click here, then pick a reply…"></div>
+        <div class="actions">
+            <button onclick="document.querySelectorAll('.comment-box').forEach(b => b.tagName === 'TEXTAREA' ? b.value = '' : b.innerHTML = '')">Clear all</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Textarea</h3>
+        <textarea class="comment-box" placeholder="Or here…" style="width: 100%; resize: vertical;"></textarea>
+    </div>
+
+    <div class="card">
+        <h3>Mock thread (for {firstName} substitution)</h3>
+        <div role="article">
+            <a role="link" href="#"><strong>Jane Doe</strong></a>
+            <p style="margin: 4px 0; color: #5b5878; font-size: 13px;">Wow, this is amazing — congratulations! 🎉</p>
+            <div class="comment-box" contenteditable="true" data-placeholder="Reply to Jane…"></div>
+        </div>
+    </div>
+
+    <script>
+        // Mock chrome.storage.sync for standalone testing
+        const mockData = {
+            templates: [
+                { id: 't1', text: 'Thanks so much, {firstName}! Really appreciate it. ❤️', category: 'thanks', uses: 12 },
+                { id: 't2', text: 'Hey! Just sent you the details. Let me know what you think.', category: 'sales', uses: 4 },
+                { id: 't3', text: 'Sorry about that — could you DM us your order number?', category: 'support', uses: 8 },
+                { id: 't4', text: 'Hope you have a great {date}!', category: 'thanks', uses: 2 },
+                { id: 't5', text: 'You can grab it here: {clipboard}', category: 'sales', uses: 0 },
+                { id: 't6', text: 'Limited spots — DM "INFO" for the link.', category: 'sales', uses: 6 }
+            ],
+            categories: ['general', 'sales', 'support', 'thanks'],
+            settings: { theme: 'auto' }
+        };
+        const listeners = [];
+        window.chrome = {
+            storage: {
+                sync: {
+                    get: (keys, cb) => {
+                        const out = {};
+                        (Array.isArray(keys) ? keys : Object.keys(mockData)).forEach(k => out[k] = mockData[k]);
+                        cb(out);
+                    },
+                    set: (data, cb) => {
+                        const changes = {};
+                        Object.keys(data).forEach(k => {
+                            changes[k] = { newValue: data[k], oldValue: mockData[k] };
+                            mockData[k] = data[k];
+                        });
+                        listeners.forEach(fn => fn(changes, 'sync'));
+                        cb && cb();
+                    }
+                },
+                onChanged: { addListener: fn => listeners.push(fn) }
+            }
+        };
+    </script>
+    <script src="content.js"></script>
+</body>
+</html>

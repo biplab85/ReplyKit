@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReplyKit</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="app">
+        <header class="topbar">
+            <div class="brand">
+                <div class="brand-logo">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="lg" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                                <stop offset="0" stop-color="#7C5CFF"/>
+                                <stop offset="1" stop-color="#3D2EE6"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M5 4.5h11a4.5 4.5 0 0 1 4.5 4.5v4.2a4.5 4.5 0 0 1-4.5 4.5h-3.4l-3.7 3a.6.6 0 0 1-1-.5v-2.5H8a4.5 4.5 0 0 1-4.5-4.5V8.7" stroke="url(#lg)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="9" cy="11" r="1.1" fill="url(#lg)"/>
+                        <circle cx="13" cy="11" r="1.1" fill="url(#lg)"/>
+                        <circle cx="17" cy="11" r="1.1" fill="url(#lg)"/>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1>ReplyKit</h1>
+                    <span class="brand-tag">Premium quick replies</span>
+                </div>
+            </div>
+            <div class="topbar-actions">
+                <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme">
+                    <svg class="ico-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+                    <svg class="ico-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+                <button class="icon-btn" id="menuBtn" title="More" aria-label="More">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg>
+                </button>
+                <div class="menu" id="menu" hidden>
+                    <button data-action="export">Export JSON</button>
+                    <button data-action="import">Import JSON</button>
+                    <button data-action="seed">Load samples</button>
+                    <button data-action="reset" class="danger">Reset all data</button>
+                    <input type="file" id="importFile" accept="application/json" hidden>
+                </div>
+            </div>
+        </header>
+
+        <div class="search-row">
+            <div class="search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                <input id="searchInput" type="text" placeholder="Search replies, e.g. 'thanks'…" autocomplete="off">
+                <kbd class="kbd">⌘K</kbd>
+            </div>
+        </div>
+
+        <nav class="tabs" id="tabs" aria-label="Categories"></nav>
+
+        <section class="composer">
+            <textarea id="newTemplate" rows="3" placeholder="Write a new reply… use {firstName}, {date}, {time}, {clipboard} for dynamic values"></textarea>
+            <div class="composer-row">
+                <select id="newCategory" class="select" aria-label="Category">
+                    <option value="general">General</option>
+                </select>
+                <button id="addCategoryBtn" class="ghost-btn" title="New category">+ Category</button>
+                <button id="addBtn" class="primary-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                    Save reply
+                </button>
+            </div>
+            <div class="hint" id="varHint">
+                <span>Variables:</span>
+                <button class="chip" data-var="{firstName}">{firstName}</button>
+                <button class="chip" data-var="{date}">{date}</button>
+                <button class="chip" data-var="{time}">{time}</button>
+                <button class="chip" data-var="{clipboard}">{clipboard}</button>
+            </div>
+        </section>
+
+        <section class="list-section">
+            <div class="list-head">
+                <h2 id="listTitle">All replies</h2>
+                <span class="count" id="listCount">0</span>
+            </div>
+            <ul id="templateList" class="template-list"></ul>
+            <div class="empty" id="emptyState" hidden>
+                <div class="empty-illu">
+                    <svg viewBox="0 0 64 64" fill="none">
+                        <rect x="6" y="14" width="44" height="30" rx="6" fill="rgba(124,92,255,.12)"/>
+                        <rect x="14" y="22" width="36" height="4" rx="2" fill="rgba(124,92,255,.45)"/>
+                        <rect x="14" y="30" width="22" height="4" rx="2" fill="rgba(124,92,255,.3)"/>
+                        <circle cx="50" cy="48" r="10" fill="#7C5CFF"/>
+                        <path d="M46 48h8M50 44v8" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <h3>No replies yet</h3>
+                <p>Save your first template above, or load samples from the menu.</p>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <span class="dot"></span>
+            <span>Synced via Chrome storage</span>
+            <span class="spacer"></span>
+            <span class="ver">v2.0</span>
+        </footer>
+    </div>
+
+    <div class="toast" id="toast" hidden></div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

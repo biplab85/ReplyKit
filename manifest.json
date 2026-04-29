@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "ReplyKit — Smart Quick Replies",
+  "short_name": "ReplyKit",
+  "version": "2.0.0",
+  "description": "A premium quick-reply toolkit for Facebook. Categories, fuzzy search, dynamic variables, keyboard shortcuts and a beautifully crafted UI.",
+  "permissions": [
+    "storage",
+    "clipboardRead"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "ReplyKit",
+    "default_icon": {
+      "16": "icons/icon16.svg",
+      "32": "icons/icon32.svg",
+      "48": "icons/icon48.svg",
+      "128": "icons/icon128.svg"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.svg",
+    "32": "icons/icon32.svg",
+    "48": "icons/icon48.svg",
+    "128": "icons/icon128.svg"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.facebook.com/*"],
+      "css": ["content.css"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "toggle-replykit": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+R",
+        "mac": "Command+Shift+R"
+      },
+      "description": "Toggle the ReplyKit panel"
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*.svg"],
+      "matches": ["*://*.facebook.com/*"]
+    }
+  ]
+}
